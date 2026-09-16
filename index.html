@@ -49,7 +49,7 @@
       <button id="photoBtn" onclick="takePhoto()">📸 Prendre mon selfie</button>
       <canvas id="canvas"></canvas>
       <img id="preview" alt="Selfie pris">
-      <button id="confirmBtn" class="secondary hidden" onclick="confirmPhoto()">✅ Utiliser cette photo et continuer</button>
+      
     </div>
     <button id="nextBtn" class="hidden" onclick="nextStep()">Continuer →</button>
   </div>
@@ -60,10 +60,10 @@
   ==========================================================
   CONFIGURATION DES POINTS GPS
   ==========================================================
-  Les coordonnées des points 2 et 4 sont documentées.
-  Point 3 est placé au centre du château comme zone de départ.
-  POINT 1 et POINT 5 sont PROVISOIRES : remplace leurs lat/lng
-  par les coordonnées exactes que tu souhaites.
+  Les points 1 à 4 utilisent la localisation GPS.
+  Le point 5 est volontairement SANS localisation : il se valide
+  simplement lorsque le selfie est pris.
+  Le point 6 est la destination finale et ne demande pas de GPS.
   ==========================================================
 */
 const POINTS = {
@@ -71,7 +71,7 @@ const POINTS = {
   2: { name:"Le pilori", lat:50.68189, lng:4.26654, radius:25, selfie:true },
   3: { name:"Les portes du château", lat:50.68341, lng:4.26662, radius:35, selfie:true },
   4: { name:"Le moulin", lat:50.68374, lng:4.26506, radius:35, selfie:true },
-  5: { name:"Le coin de Loki", lat:50.68600, lng:4.27000, radius:75, selfie:true },
+  5: { name:"Le coin de Loki", selfie:true, manual:true },
   6: { name:"Retour à l'appartement", lat:50.68100, lng:4.26900, radius:35, selfie:false }
 };
 
@@ -85,7 +85,7 @@ const STEPS = {
     title:"Quand le stress monte…",
     text:`Il existe certaines petites choses vers lesquelles on se tourne quand la pression monte…<br><br>
     Pour commencer cette aventure, rends-toi dans un endroit où tu trouveras quelque chose qui pourrait bien t'accompagner dans ces moments-là.<br><br>
-    🚬 <strong>Direction Videokay à Braine-le-Château.</strong><br><br>
+    🚬 <strong>Direction Videokay / Store 1440, Rue de la Libération 60 à Braine-le-Château.</strong><br><br>
     Quand tu seras arrivée au bon endroit, je saurai que tu as trouvé.`
   },
   2: {
@@ -112,11 +112,10 @@ const STEPS = {
   },
   5: {
     title:"Le coin de Loki 🐾",
-    text:`Bravo, tu es arrivée dans la bonne zone ! 🎉<br><br>
+    text:`Bravo ! Tu arrives à la dernière partie de l'aventure. 🎉<br><br>
     Maintenant, va <strong>là où Loki aime se rendre pour prendre son temps</strong>.<br><br>
-    Cherche son petit coin à lui. Prends le temps de regarder autour de toi et de trouver l'endroit exact.<br><br>
-    Quand tu penses avoir trouvé, <strong>prends ton selfie</strong>. ❤️<br><br>
-    Une fois la photo enregistrée, la dernière étape se débloquera.`
+    Cherche son petit coin à lui, puis <strong>fais ton selfie sur place</strong>. ❤️<br><br>
+    Dès que la photo est prise, le dernier point se débloque.`
   },
   6: {
     title:"La dernière étape 🏠",
@@ -148,7 +147,7 @@ function render(){
   $("bar").style.width = `${Math.min(100,(current/6)*100)}%`;
 
   if(current >= 1 && current <= 6){
-    $("locBtn").classList.remove("hidden");
+    if(current >= 1 && current <= 5) $("locBtn").classList.remove("hidden");
     if(current === 6){
       $("locBtn").classList.add("hidden");
       $("nextBtn").classList.add("hidden");
@@ -164,6 +163,11 @@ function startGame(){
 }
 
 function requestLocation(){
+  const p = POINTS[current];
+  if(p && p.manual){
+    openCamera();
+    return;
+  }
   if(!navigator.geolocation){
     showStatus("Ce téléphone ne permet pas d'utiliser la localisation.", "error");
     return;
@@ -183,7 +187,9 @@ function distanceMeters(lat1,lon1,lat2,lon2){
 
 function checkPosition(pos){
   const p = POINTS[current];
-  if(!p){
+  if(!p || p.manual){
+    return;
+  }
     showStatus("Étape terminée.", "ok");
     return;
   }
@@ -240,21 +246,31 @@ function takePhoto(){
   canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
   preview.src=canvas.toDataURL("image/jpeg",0.85);
   preview.style.display="block";
-  $("confirmBtn").classList.remove("hidden");
+  $("confirmBtn").classList.add("hidden");
   $("photoBtn").classList.add("hidden");
   photoTaken=true;
   if(stream) stream.getTracks().forEach(t=>t.stop());
+
+  // Pour le point 5, le selfie suffit : aucun contrôle GPS n'est effectué.
+  if(current === 5){
+    showStatus("📸 Selfie enregistré. Bravo ! Le dernier point est maintenant débloqué.", "ok");
+    $("cameraWrap").style.display = "none";
+    nextStep();
+  } else {
+    showStatus("📸 Selfie enregistré. Bravo ! La prochaine étape est maintenant débloquée.", "ok");
+    $("cameraWrap").style.display = "none";
+    nextStep();
+  }
 }
 
 function confirmPhoto(){
-  if(!photoTaken || !geoValidated) return;
-  showStatus("📸 Selfie enregistré. Bravo ! La prochaine étape est maintenant débloquée.", "ok");
-  $("cameraWrap").style.display = "none";
-  nextStep();
+  // Conservé pour compatibilité avec l'ancien bouton, mais le selfie
+  // valide désormais automatiquement l'étape.
+  if(!photoTaken || (current !== 5 && !geoValidated)) return;
 }
 
 function nextStep(){
-  if(current===5 && (!geoValidated || !photoTaken)) return;
+  if(current===5 && !photoTaken) return;
   current++;
   localStorage.setItem("jeuStep", current);
   geoValidated=false;
