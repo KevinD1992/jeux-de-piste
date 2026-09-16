@@ -1,295 +1,770 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#111827">
-<title>Le jeu de piste ❤️</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeu de piste</title>
+
 <style>
-  :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f7f5f2}
-  *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;background:linear-gradient(180deg,#fff 0,#f7f5f2 100%)}
-  main{max-width:680px;margin:auto;padding:24px 18px 40px}
-  .card{background:white;border-radius:22px;padding:24px;box-shadow:0 8px 30px #00000012;margin-top:18px}
-  h1{font-size:30px;line-height:1.1;margin:0 0 10px}
-  h2{font-size:23px;margin:0 0 12px}
-  p{font-size:17px;line-height:1.55}
-  .small{font-size:14px;color:#667085}
-  .step{display:inline-block;padding:7px 11px;border-radius:999px;background:#eee8df;font-weight:700;font-size:14px;margin-bottom:12px}
-  button{width:100%;border:0;border-radius:15px;padding:15px 18px;font-size:17px;font-weight:700;background:#172033;color:white;margin-top:12px;cursor:pointer}
-  button.secondary{background:#eee8df;color:#172033}
-  button:disabled{opacity:.5}
-  .status{padding:13px 14px;border-radius:14px;background:#f2f4f7;margin-top:14px;font-weight:600}
-  .ok{background:#e9f7ef}
-  .warn{background:#fff6df}
-  .error{background:#fdecec}
-  #cameraWrap{display:none;margin-top:16px}
-  video{width:100%;border-radius:18px;background:#111;display:block}
-  canvas{display:none}
-  #preview{display:none;width:100%;border-radius:18px;margin-top:12px}
-  .hidden{display:none!important}
-  .progress{height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:14px 0 2px}
-  .bar{height:100%;background:#172033;width:0%;transition:width .3s}
-  a.map{display:inline-block;margin-top:10px;color:#172033;font-weight:700}
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f1e8;
+  color: #222;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 25px 20px 40px;
+}
+
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 5px 20px rgba(0,0,0,.12);
+}
+
+h1 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.step {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #777;
+}
+
+h2 {
+  text-align: center;
+}
+
+p {
+  line-height: 1.6;
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 12px;
+  background: #222;
+  color: white;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .5;
+}
+
+.secondary {
+  background: #777;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.status {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 12px;
+  background: #eee;
+  text-align: center;
+}
+
+.success {
+  background: #dff3df;
+}
+
+.error {
+  background: #f7dddd;
+}
+
+#cameraWrap {
+  margin-top: 20px;
+  text-align: center;
+}
+
+video, canvas, #preview {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 15px;
+  margin-top: 10px;
+}
+
+#preview {
+  display: none;
+}
+
+.final {
+  text-align: center;
+  font-size: 20px;
+}
 </style>
 </head>
+
 <body>
-<main>
+
+<div class="container">
   <div class="card">
-    <div class="step" id="stepLabel">Jeu de piste</div>
-    <h1 id="title">Une petite aventure t'attend ❤️</h1>
-    <div class="progress"><div class="bar" id="bar"></div></div>
-    <p id="text"></p>
+
+    <div class="step" id="stepNumber">Étape 1 / 6</div>
+
+    <h1 id="title">Quand le stress monte…</h1>
+
+    <div id="text"></div>
+
+    <button id="startBtn" onclick="startAdventure()">
+      Commencer l'aventure
+    </button>
+
+    <button id="locBtn" class="hidden" onclick="checkLocation()">
+      📍 Vérifier ma position
+    </button>
+
     <div id="status" class="status hidden"></div>
-    <button id="startBtn" onclick="startGame()">Commencer l'aventure</button>
-    <button id="locBtn" class="secondary hidden" onclick="requestLocation()">📍 Autoriser ma localisation</button>
-    <div id="cameraWrap">
-      <p><strong>📸 Fais ton selfie ici.</strong></p>
+
+    <div id="cameraWrap" class="hidden">
+      <p><strong>📸 Prends ton selfie pour valider cette étape.</strong></p>
+
       <video id="video" autoplay playsinline></video>
-      <button id="photoBtn" onclick="takePhoto()">📸 Prendre mon selfie</button>
-      <canvas id="canvas"></canvas>
-      <img id="preview" alt="Selfie pris">
-      
+
+      <canvas id="canvas" class="hidden"></canvas>
+
+      <img id="preview">
+
+      <button id="photoBtn" onclick="takePhoto()">
+        📸 Prendre le selfie
+      </button>
     </div>
-    <button id="nextBtn" class="hidden" onclick="nextStep()">Continuer →</button>
+
   </div>
-</main>
+</div>
 
 <script>
-/*
-  ==========================================================
-  CONFIGURATION DES POINTS GPS
-  ==========================================================
-  Les points 1 à 4 utilisent la localisation GPS.
-  Le point 5 est volontairement SANS localisation : il se valide
-  simplement lorsque le selfie est pris.
-  Le point 6 est la destination finale et ne demande pas de GPS.
-  ==========================================================
-*/
+
+/* =========================================================
+   COORDONNÉES DES ÉTAPES
+   ========================================================= */
+
 const POINTS = {
-  1: { name:"Videokay / Store 1440", lat:50.68150, lng:4.26900, radius:80, selfie:false },
-  2: { name:"Le pilori", lat:50.68189, lng:4.26654, radius:25, selfie:true },
-  3: { name:"Les portes du château", lat:50.68341, lng:4.26662, radius:35, selfie:true },
-  4: { name:"Le moulin", lat:50.68374, lng:4.26506, radius:35, selfie:true },
-  5: { name:"Le coin de Loki", selfie:true, manual:true },
-  6: { name:"Retour à l'appartement", lat:50.68100, lng:4.26900, radius:35, selfie:false }
+
+  1: {
+    name: "Videokay / Store 1440",
+    lat: 50.68150,
+    lng: 4.26900,
+    radius: 80,
+    selfie: false
+  },
+
+  2: {
+    name: "Le pilori",
+    lat: 50.68189,
+    lng: 4.26654,
+    radius: 25,
+    selfie: true
+  },
+
+  3: {
+    name: "Les portes du château",
+    lat: 50.68341,
+    lng: 4.26662,
+    radius: 35,
+    selfie: true
+  },
+
+  4: {
+    name: "Le Moulin Banal",
+    lat: 50.68374,
+    lng: 4.26506,
+    radius: 35,
+    selfie: true
+  },
+
+  /*
+     IMPORTANT :
+     Le point 5 ne possède volontairement PAS
+     de coordonnées GPS.
+  */
+
+  5: {
+    name: "Le coin de Loki",
+    selfie: true,
+    manual: true
+  },
+
+  6: {
+    name: "Retour à l'appartement",
+    final: true
+  }
+
 };
+
+
+/* =========================================================
+   TEXTES DES ÉTAPES
+   ========================================================= */
 
 const STEPS = {
-  0: {
-    title:"Bienvenue dans ton jeu de piste ❤️",
-    text:`Tout commence ici. Prépare-toi à suivre quelques indices, à marcher un peu et surtout à profiter du voyage.<br><br>
-    <strong>Quand tu es prête, lance l'aventure.</strong>`
-  },
-  1: {
-    title:"Quand le stress monte…",
-    text:`Il existe certaines petites choses vers lesquelles on se tourne quand la pression monte…<br><br>
-    Pour commencer cette aventure, rends-toi dans un endroit où tu trouveras quelque chose qui pourrait bien t'accompagner dans ces moments-là.<br><br>
-    🚬 <strong>Direction Videokay / Store 1440, Rue de la Libération 60 à Braine-le-Château.</strong><br><br>
-    Quand tu seras arrivée au bon endroit, je saurai que tu as trouvé.`
-  },
-  2: {
-    title:"Retour dans le passé 🏰",
-    text:`Bravo, tu as trouvé le premier endroit ! 🎉<br><br>
-    Maintenant, cherche un vestige du <strong>Moyen Âge</strong>, un endroit où l'on exposait et châtiait publiquement certaines personnes.<br><br>
-    🔎 <strong>Trouve le pilori.</strong><br><br>
-    Une fois arrivée, fais ton selfie pour prouver que tu as bien trouvé.`
-  },
-  3: {
-    title:"La place d'une princesse 👑",
-    text:`Bravo ! Tu as trouvé le pilori. 📸<br><br>
-    Maintenant, dirige-toi vers <strong>les portes du château</strong>.<br><br>
-    Imagine un instant qu'une princesse aurait pu être accueillie ici…<br><br>
-    Quand tu as trouvé l'endroit, fais ton selfie.`
-  },
-  4: {
-    title:"L'eau emporte tout 🌊",
-    text:`Bravo ! Encore une étape réussie. 📸<br><br>
-    Continue maintenant vers <strong>le moulin</strong>.<br><br>
-    L'eau emporte tout avec elle… peut-être même certaines de nos embrouilles.<br>
-    Aujourd'hui tout est peut-être agité, mais un jour l'eau redevient calme.<br><br>
-    Quand tu arrives au moulin, fais ton selfie.`
-  },
-  5: {
-    title:"Le coin de Loki 🐾",
-    text:`Bravo ! Tu arrives à la dernière partie de l'aventure. 🎉<br><br>
-    Maintenant, va <strong>là où Loki aime se rendre pour prendre son temps</strong>.<br><br>
-    Cherche son petit coin à lui, puis <strong>fais ton selfie sur place</strong>. ❤️<br><br>
-    Dès que la photo est prise, le dernier point se débloque.`
-  },
-  6: {
-    title:"La dernière étape 🏠",
-    text:`❤️ <strong>Preuve validée !</strong><br><br>
-    Cette fois, c'est officiel : tu as réussi toutes les étapes.<br><br>
-    Il est temps de rentrer à la maison.<br><br>
-    🏠 <strong>Direction : Rue du Mont-Saint-Pont 77.</strong><br><br>
-    Mais ce qui t'attend là-bas est peut-être la vraie raison de tout ce jeu… ❤️`
-  }
+
+1: {
+  title: "Quand le stress monte…",
+  text: `
+    <p>
+    Il existe certaines petites choses vers lesquelles on se tourne
+    quand la pression monte…
+    </p>
+
+    <p>
+    Pour commencer cette aventure, rends-toi chez :
+    </p>
+
+    <p>
+    <strong>📍 Videokay / Store 1440</strong><br>
+    Rue de la Libération 60<br>
+    Braine-le-Château
+    </p>
+
+    <p>
+    Une fois arrivé dans la bonne zone, la prochaine étape sera débloquée.
+    </p>
+  `
+},
+
+2: {
+  title: "Un souvenir du passé…",
+  text: `
+    <p>
+    Te voilà arrivé à proximité d'un vestige médiéval.
+    </p>
+
+    <p>
+    Autrefois, c'était un endroit où les personnes condamnées
+    pouvaient être exposées publiquement.
+    </p>
+
+    <p>
+    <strong>📍 À toi de trouver le pilori.</strong>
+    </p>
+
+    <p>
+    Lorsque tu es devant lui, prends ton selfie.
+    </p>
+  `
+},
+
+3: {
+  title: "La porte du château 👑",
+  text: `
+    <p>
+    Continue ton chemin jusqu'aux
+    <strong>portes du château</strong>.
+    </p>
+
+    <p>
+    On raconte qu'une princesse aurait pu passer par ici…
+    </p>
+
+    <p>
+    Trouve l'endroit, puis prends ton selfie.
+    </p>
+  `
+},
+
+4: {
+  title: "L'eau emporte tout…",
+  text: `
+    <p>
+    Quand les embrouilles deviennent trop nombreuses,
+    parfois il faut simplement laisser couler…
+    </p>
+
+    <p>
+    L'eau finit toujours par emporter les choses
+    et, après l'agitation, elle retrouve son calme.
+    </p>
+
+    <p>
+    <strong>📍 Direction le Moulin Banal.</strong>
+    </p>
+
+    <p>
+    Une fois devant le moulin, prends ton selfie.
+    </p>
+  `
+},
+
+5: {
+  title: "Là où Loki aime prendre du temps 🐾",
+  text: `
+    <p>
+    Voilà, tu arrives à la dernière partie de l'aventure.
+    🎉
+    </p>
+
+    <p>
+    Maintenant, rends-toi
+    <strong>là où Loki aime prendre du temps</strong>.
+    </p>
+
+    <p>
+    Cherche son petit coin à lui.
+    Prends le temps de regarder autour de toi
+    et de trouver l'endroit.
+    </p>
+
+    <p>
+    Quand tu penses avoir trouvé,
+    <strong>fais ton selfie sur place</strong>. ❤️
+    </p>
+
+    <p>
+    <strong>
+    Dès que la photo est prise, le dernier point sera débloqué.
+    </strong>
+    </p>
+  `
+},
+
+6: {
+  title: "Dernière étape ❤️",
+  text: `
+    <div class="final">
+
+      <p>
+      🎉 <strong>Bravo !</strong> 🎉
+      </p>
+
+      <p>
+      Tu as terminé toute l'aventure.
+      </p>
+
+      <p>
+      Il ne reste plus qu'une chose à faire…
+      </p>
+
+      <p>
+      <strong>🏠 Retourne à l'appartement.</strong>
+      </p>
+
+      <p>
+      Rue de Mont Saint Pont 77
+      </p>
+
+      <p>
+      ❤️
+      </p>
+
+    </div>
+  `
+}
+
 };
 
-let current = Number(localStorage.getItem("jeuStep") || 0);
+
+/* =========================================================
+   VARIABLES
+   ========================================================= */
+
+let currentStep = parseInt(localStorage.getItem("jeuStep")) || 1;
+
 let geoValidated = false;
-let stream = null;
 let photoTaken = false;
+let stream = null;
 
-const $ = id => document.getElementById(id);
 
-function render(){
-  const s = STEPS[current];
-  $("stepLabel").textContent = current === 0 ? "Départ" : `Étape ${current} / 6`;
-  $("title").innerHTML = s.title;
-  $("text").innerHTML = s.text;
-  $("status").classList.add("hidden");
-  $("nextBtn").classList.add("hidden");
-  $("locBtn").classList.add("hidden");
-  $("cameraWrap").style.display = "none";
-  $("startBtn").classList.toggle("hidden", current !== 0);
-  $("bar").style.width = `${Math.min(100,(current/6)*100)}%`;
+/* =========================================================
+   INITIALISATION
+   ========================================================= */
 
-  if(current >= 1 && current <= 6){
-    if(current >= 1 && current <= 5) $("locBtn").classList.remove("hidden");
-    if(current === 6){
-      $("locBtn").classList.add("hidden");
-      $("nextBtn").classList.add("hidden");
-    }
+function init() {
+
+  showStep();
+
+}
+
+
+/* =========================================================
+   AFFICHER UNE ÉTAPE
+   ========================================================= */
+
+function showStep() {
+
+  const step = STEPS[currentStep];
+
+  document.getElementById("stepNumber").textContent =
+    "Étape " + currentStep + " / 6";
+
+  document.getElementById("title").innerHTML =
+    step.title;
+
+  document.getElementById("text").innerHTML =
+    step.text;
+
+  document.getElementById("status").classList.add("hidden");
+
+  document.getElementById("cameraWrap").classList.add("hidden");
+
+  document.getElementById("locBtn").classList.add("hidden");
+
+  document.getElementById("startBtn").classList.remove("hidden");
+
+  if (currentStep === 6) {
+
+    document.getElementById("startBtn").classList.add("hidden");
+
+    return;
   }
+
 }
 
-function startGame(){
-  current = 1;
-  localStorage.setItem("jeuStep", current);
-  render();
-  requestLocation();
-}
 
-function requestLocation(){
-  const p = POINTS[current];
-  if(p && p.manual){
+/* =========================================================
+   COMMENCER
+   ========================================================= */
+
+function startAdventure() {
+
+  document.getElementById("startBtn").classList.add("hidden");
+
+  const point = POINTS[currentStep];
+
+  if (currentStep === 5) {
+
+    /*
+      POINT 5 :
+      aucune localisation.
+      On demande simplement d'aller sur place
+      puis de prendre le selfie.
+    */
+
     openCamera();
+
     return;
   }
-  if(!navigator.geolocation){
-    showStatus("Ce téléphone ne permet pas d'utiliser la localisation.", "error");
-    return;
-  }
-  showStatus("📍 Recherche de ta position… Reste quelques secondes ici.", "");
-  navigator.geolocation.getCurrentPosition(checkPosition, geoError, {
-    enableHighAccuracy:true, maximumAge:5000, timeout:15000
-  });
+
+  document.getElementById("locBtn").classList.remove("hidden");
+
+  showStatus(
+    "📍 Appuie sur le bouton lorsque tu es arrivé.",
+    ""
+  );
+
 }
 
-function distanceMeters(lat1,lon1,lat2,lon2){
-  const R=6371000, a=Math.PI/180;
-  const dLat=(lat2-lat1)*a, dLon=(lon2-lon1)*a;
-  const x=Math.sin(dLat/2)**2 + Math.cos(lat1*a)*Math.cos(lat2*a)*Math.sin(dLon/2)**2;
-  return 2*R*Math.asin(Math.sqrt(x));
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+function showStatus(message, type) {
+
+  const box = document.getElementById("status");
+
+  box.innerHTML = message;
+
+  box.className = "status";
+
+  if (type === "ok") {
+    box.classList.add("success");
+  }
+
+  if (type === "error") {
+    box.classList.add("error");
+  }
+
+  box.classList.remove("hidden");
+
 }
 
-function checkPosition(pos){
-  const p = POINTS[current];
-  if(!p || p.manual){
+
+/* =========================================================
+   GPS
+   ========================================================= */
+
+function checkLocation() {
+
+  const point = POINTS[currentStep];
+
+  if (!navigator.geolocation) {
+
+    showStatus(
+      "❌ La localisation GPS n'est pas disponible sur ce téléphone.",
+      "error"
+    );
+
     return;
   }
-    showStatus("Étape terminée.", "ok");
-    return;
-  }
-  const d = distanceMeters(pos.coords.latitude,pos.coords.longitude,p.lat,p.lng);
-  const accuracy = Math.round(pos.coords.accuracy || 0);
 
-  if(d <= p.radius){
-    geoValidated = true;
-    showStatus(`🎉 Bravo ! Tu es au bon endroit.<br><span class="small">Zone validée à environ ${Math.round(d)} m (précision GPS annoncée : ±${accuracy} m).</span>`, "ok");
-    $("locBtn").classList.add("hidden");
+  showStatus(
+    "📍 Recherche de ta position…",
+    ""
+  );
 
-    if(p.selfie){
-      openCamera();
-    } else {
-      $("nextBtn").classList.remove("hidden");
+  navigator.geolocation.getCurrentPosition(
+
+    function(position) {
+
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      const distance = getDistance(
+        lat,
+        lng,
+        point.lat,
+        point.lng
+      );
+
+      if (distance <= point.radius) {
+
+        geoValidated = true;
+
+        document.getElementById("locBtn").classList.add("hidden");
+
+        showStatus(
+          "✅ Bravo ! Tu es au bon endroit.",
+          "ok"
+        );
+
+        if (point.selfie) {
+
+          setTimeout(function() {
+            openCamera();
+          }, 500);
+
+        } else {
+
+          setTimeout(function() {
+            nextStep();
+          }, 800);
+
+        }
+
+      } else {
+
+        showStatus(
+          "❌ Tu n'es pas encore au bon endroit.<br><br>" +
+          "Tu es à environ " +
+          Math.round(distance) +
+          " mètres de la zone.",
+          "error"
+        );
+
+      }
+
+    },
+
+    function(error) {
+
+      showStatus(
+        "⚠️ Impossible d'obtenir ta position.<br><br>" +
+        "Vérifie que la localisation est activée " +
+        "et autorise ton navigateur à utiliser ta position.",
+        "error"
+      );
+
+    },
+
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 5000
     }
-  }else{
-    const remaining = Math.max(0,Math.round(d-p.radius));
-    showStatus(`Tu es dans la bonne direction, mais tu n'es pas encore dans la zone de validation.<br><br>📍 Environ <strong>${Math.round(d)} m</strong> du point.`, "warn");
-  }
+
+  );
+
 }
 
-function geoError(err){
-  let msg = "Impossible d'obtenir ta position.";
-  if(err.code===1) msg = "La localisation est refusée. Autorise la localisation pour cette page dans les réglages du navigateur.";
-  if(err.code===2) msg = "Position indisponible. Essaie dehors ou avec une meilleure réception GPS.";
-  if(err.code===3) msg = "La recherche GPS a pris trop de temps. Réessaie.";
-  showStatus(msg,"error");
+
+/* =========================================================
+   CALCUL DISTANCE GPS
+   ========================================================= */
+
+function getDistance(lat1, lon1, lat2, lon2) {
+
+  const R = 6371000;
+
+  const rad = Math.PI / 180;
+
+  const dLat =
+    (lat2 - lat1) * rad;
+
+  const dLon =
+    (lon2 - lon1) * rad;
+
+  const a =
+    Math.sin(dLat / 2) *
+    Math.sin(dLat / 2) +
+    Math.cos(lat1 * rad) *
+    Math.cos(lat2 * rad) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+
+  const c =
+    2 * Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1 - a)
+    );
+
+  return R * c;
+
 }
 
-async function openCamera(){
-  $("cameraWrap").style.display = "block";
-  $("photoBtn").classList.remove("hidden");
-  $("confirmBtn").classList.add("hidden");
-  $("preview").style.display = "none";
-  try{
-    stream = await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:"user"}, audio:false
-    });
-    $("video").srcObject = stream;
-  }catch(e){
-    showStatus("📸 Le navigateur n'a pas autorisé la caméra. Autorise la caméra puis recharge la page.", "error");
+
+/* =========================================================
+   CAMERA
+   ========================================================= */
+
+async function openCamera() {
+
+  const cameraWrap =
+    document.getElementById("cameraWrap");
+
+  const video =
+    document.getElementById("video");
+
+  try {
+
+    stream =
+      await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user"
+        },
+        audio: false
+      });
+
+    video.srcObject = stream;
+
+    cameraWrap.classList.remove("hidden");
+
   }
+
+  catch (error) {
+
+    showStatus(
+      "⚠️ Impossible d'utiliser la caméra.<br><br>" +
+      "Autorise l'accès à la caméra dans ton navigateur.",
+      "error"
+    );
+
+  }
+
 }
 
-function takePhoto(){
-  if(!geoValidated){
-    showStatus("Il faut d'abord avoir validé la zone GPS.", "error");
-    return;
-  }
-  const video=$("video"), canvas=$("canvas"), preview=$("preview");
-  canvas.width=video.videoWidth || 720;
-  canvas.height=video.videoHeight || 960;
-  canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
-  preview.src=canvas.toDataURL("image/jpeg",0.85);
-  preview.style.display="block";
-  $("confirmBtn").classList.add("hidden");
-  $("photoBtn").classList.add("hidden");
-  photoTaken=true;
-  if(stream) stream.getTracks().forEach(t=>t.stop());
 
-  // Pour le point 5, le selfie suffit : aucun contrôle GPS n'est effectué.
-  if(current === 5){
-    showStatus("📸 Selfie enregistré. Bravo ! Le dernier point est maintenant débloqué.", "ok");
-    $("cameraWrap").style.display = "none";
+/* =========================================================
+   PRENDRE LE SELFIE
+   ========================================================= */
+
+function takePhoto() {
+
+  const video =
+    document.getElementById("video");
+
+  const canvas =
+    document.getElementById("canvas");
+
+  const preview =
+    document.getElementById("preview");
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  const ctx =
+    canvas.getContext("2d");
+
+  ctx.drawImage(
+    video,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  preview.src =
+    canvas.toDataURL("image/jpeg");
+
+  preview.style.display = "block";
+
+  video.style.display = "none";
+
+  document.getElementById("photoBtn")
+    .classList.add("hidden");
+
+  photoTaken = true;
+
+  if (stream) {
+
+    stream.getTracks().forEach(
+      track => track.stop()
+    );
+
+  }
+
+
+  /*
+    IMPORTANT :
+    Le selfie valide immédiatement l'étape.
+
+    Pour le point 5, il n'y a aucun contrôle GPS.
+  */
+
+  showStatus(
+    "📸 Selfie enregistré !<br><br>" +
+    "Bravo, la dernière étape est maintenant débloquée.",
+    "ok"
+  );
+
+  setTimeout(function() {
+
+    document.getElementById("cameraWrap")
+      .classList.add("hidden");
+
     nextStep();
-  } else {
-    showStatus("📸 Selfie enregistré. Bravo ! La prochaine étape est maintenant débloquée.", "ok");
-    $("cameraWrap").style.display = "none";
-    nextStep();
+
+  }, 1200);
+
+}
+
+
+/* =========================================================
+   ÉTAPE SUIVANTE
+   ========================================================= */
+
+function nextStep() {
+
+  currentStep++;
+
+  if (currentStep > 6) {
+    currentStep = 6;
   }
+
+  localStorage.setItem(
+    "jeuStep",
+    currentStep
+  );
+
+  geoValidated = false;
+  photoTaken = false;
+
+  showStep();
+
 }
 
-function confirmPhoto(){
-  // Conservé pour compatibilité avec l'ancien bouton, mais le selfie
-  // valide désormais automatiquement l'étape.
-  if(!photoTaken || (current !== 5 && !geoValidated)) return;
-}
 
-function nextStep(){
-  if(current===5 && !photoTaken) return;
-  current++;
-  localStorage.setItem("jeuStep", current);
-  geoValidated=false;
-  photoTaken=false;
-  render();
-  if(current===6){
-    $("title").innerHTML = STEPS[6].title;
-    $("text").innerHTML = STEPS[6].text;
-    $("bar").style.width = "100%";
-  }
-}
+/* =========================================================
+   LANCEMENT
+   ========================================================= */
 
-function showStatus(msg, cls){
-  $("status").innerHTML=msg;
-  $("status").className="status "+(cls||"");
-  $("status").classList.remove("hidden");
-}
+init();
 
-render();
 </script>
+
 </body>
 </html>
