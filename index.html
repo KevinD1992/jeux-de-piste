@@ -58,14 +58,6 @@ button {
   cursor: pointer;
 }
 
-button:disabled {
-  opacity: .5;
-}
-
-.secondary {
-  background: #777;
-}
-
 .hidden {
   display: none !important;
 }
@@ -91,7 +83,8 @@ button:disabled {
   text-align: center;
 }
 
-video, canvas, #preview {
+video,
+#preview {
   width: 100%;
   max-width: 400px;
   border-radius: 15px;
@@ -112,11 +105,16 @@ video, canvas, #preview {
 <body>
 
 <div class="container">
+
   <div class="card">
 
-    <div class="step" id="stepNumber">Étape 1 / 6</div>
+    <div class="step" id="stepNumber">
+      Étape 1 / 6
+    </div>
 
-    <h1 id="title">Quand le stress monte…</h1>
+    <h1 id="title">
+      Quand le stress monte…
+    </h1>
 
     <div id="text"></div>
 
@@ -131,32 +129,45 @@ video, canvas, #preview {
     <div id="status" class="status hidden"></div>
 
     <div id="cameraWrap" class="hidden">
-      <p><strong>📸 Prends ton selfie pour valider cette étape.</strong></p>
 
-      <video id="video" autoplay playsinline></video>
+      <p>
+        <strong>
+          📸 Prends ton selfie pour valider cette étape.
+        </strong>
+      </p>
 
-      <canvas id="canvas" class="hidden"></canvas>
+      <video
+        id="video"
+        autoplay
+        playsinline>
+      </video>
 
       <img id="preview">
 
-      <button id="photoBtn" onclick="takePhoto()">
+      <button
+        id="photoBtn"
+        onclick="takePhoto()">
         📸 Prendre le selfie
       </button>
+
     </div>
 
   </div>
+
 </div>
+
 
 <script>
 
-/* =========================================================
-   COORDONNÉES DES ÉTAPES
-   ========================================================= */
+/* =====================================================
+   POINTS GPS
+   Les noms sont uniquement utilisés par le code.
+   Ils ne sont jamais affichés au joueur.
+   ===================================================== */
 
 const POINTS = {
 
   1: {
-    name: "Videokay / Store 1440",
     lat: 50.68150,
     lng: 4.26900,
     radius: 80,
@@ -164,7 +175,6 @@ const POINTS = {
   },
 
   2: {
-    name: "Le pilori",
     lat: 50.68189,
     lng: 4.26654,
     radius: 25,
@@ -172,7 +182,6 @@ const POINTS = {
   },
 
   3: {
-    name: "Les portes du château",
     lat: 50.68341,
     lng: 4.26662,
     radius: 35,
@@ -180,7 +189,6 @@ const POINTS = {
   },
 
   4: {
-    name: "Le Moulin Banal",
     lat: 50.68374,
     lng: 4.26506,
     radius: 35,
@@ -188,200 +196,269 @@ const POINTS = {
   },
 
   /*
-     IMPORTANT :
-     Le point 5 ne possède volontairement PAS
-     de coordonnées GPS.
+    POINT 5 :
+    PAS DE GPS.
+    Le joueur doit simplement trouver
+    l'endroit grâce à l'indice.
   */
 
   5: {
-    name: "Le coin de Loki",
     selfie: true,
     manual: true
   },
 
+  /*
+    POINT 6 :
+    étape finale.
+    Aucun GPS nécessaire.
+  */
+
   6: {
-    name: "Retour à l'appartement",
     final: true
   }
 
 };
 
 
-/* =========================================================
-   TEXTES DES ÉTAPES
-   ========================================================= */
+/* =====================================================
+   TEXTES DES 6 ÉTAPES
+   ===================================================== */
 
 const STEPS = {
 
-1: {
-  title: "Quand le stress monte…",
-  text: `
-    <p>
-    Il existe certaines petites choses vers lesquelles on se tourne
-    quand la pression monte…
-    </p>
+  1: {
 
-    <p>
-    Pour commencer cette aventure, rends-toi chez :
-    </p>
+    title: "Quand le stress monte…",
 
-    <p>
-    <strong>📍 Videokay / Store 1440</strong><br>
-    Rue de la Libération 60<br>
-    Braine-le-Château
-    </p>
-
-    <p>
-    Une fois arrivé dans la bonne zone, la prochaine étape sera débloquée.
-    </p>
-  `
-},
-
-2: {
-  title: "Un souvenir du passé…",
-  text: `
-    <p>
-    Te voilà arrivé à proximité d'un vestige médiéval.
-    </p>
-
-    <p>
-    Autrefois, c'était un endroit où les personnes condamnées
-    pouvaient être exposées publiquement.
-    </p>
-
-    <p>
-    <strong>📍 À toi de trouver le pilori.</strong>
-    </p>
-
-    <p>
-    Lorsque tu es devant lui, prends ton selfie.
-    </p>
-  `
-},
-
-3: {
-  title: "La porte du château 👑",
-  text: `
-    <p>
-    Continue ton chemin jusqu'aux
-    <strong>portes du château</strong>.
-    </p>
-
-    <p>
-    On raconte qu'une princesse aurait pu passer par ici…
-    </p>
-
-    <p>
-    Trouve l'endroit, puis prends ton selfie.
-    </p>
-  `
-},
-
-4: {
-  title: "L'eau emporte tout…",
-  text: `
-    <p>
-    Quand les embrouilles deviennent trop nombreuses,
-    parfois il faut simplement laisser couler…
-    </p>
-
-    <p>
-    L'eau finit toujours par emporter les choses
-    et, après l'agitation, elle retrouve son calme.
-    </p>
-
-    <p>
-    <strong>📍 Direction le Moulin Banal.</strong>
-    </p>
-
-    <p>
-    Une fois devant le moulin, prends ton selfie.
-    </p>
-  `
-},
-
-5: {
-  title: "Là où Loki aime prendre du temps 🐾",
-  text: `
-    <p>
-    Voilà, tu arrives à la dernière partie de l'aventure.
-    🎉
-    </p>
-
-    <p>
-    Maintenant, rends-toi
-    <strong>là où Loki aime prendre du temps</strong>.
-    </p>
-
-    <p>
-    Cherche son petit coin à lui.
-    Prends le temps de regarder autour de toi
-    et de trouver l'endroit.
-    </p>
-
-    <p>
-    Quand tu penses avoir trouvé,
-    <strong>fais ton selfie sur place</strong>. ❤️
-    </p>
-
-    <p>
-    <strong>
-    Dès que la photo est prise, le dernier point sera débloqué.
-    </strong>
-    </p>
-  `
-},
-
-6: {
-  title: "Dernière étape ❤️",
-  text: `
-    <div class="final">
+    text: `
 
       <p>
-      🎉 <strong>Bravo !</strong> 🎉
+        Il existe certaines petites choses vers lesquelles
+        on se tourne quand la pression monte…
       </p>
 
       <p>
-      Tu as terminé toute l'aventure.
+        Pour commencer ton aventure, cherche un endroit
+        où l'on peut trouver de quoi accompagner
+        ce petit moment de détente.
       </p>
 
       <p>
-      Il ne reste plus qu'une chose à faire…
+        <strong>
+          À toi de trouver l'endroit.
+        </strong>
       </p>
 
       <p>
-      <strong>🏠 Retourne à l'appartement.</strong>
+        Une fois sur place, la suite se débloquera.
+      </p>
+
+    `
+
+  },
+
+
+  2: {
+
+    title: "Un souvenir du passé…",
+
+    text: `
+
+      <p>
+        Remonte un peu dans le temps…
       </p>
 
       <p>
-      Rue de Mont Saint Pont 77
+        Imagine une époque où la justice ne se rendait
+        pas exactement comme aujourd'hui.
       </p>
 
       <p>
-      ❤️
+        Cherche un vestige lié aux anciennes
+        punitions publiques, là où les condamnés
+        pouvaient autrefois être exposés
+        aux regards de tous.
       </p>
 
-    </div>
-  `
-}
+      <p>
+        <strong>
+          Quand tu penses avoir trouvé,
+          approche-toi et prends ton selfie.
+        </strong>
+      </p>
+
+    `
+
+  },
+
+
+  3: {
+
+    title: "La porte du château 👑",
+
+    text: `
+
+      <p>
+        Une histoire de château,
+        de pierres anciennes…
+        et peut-être d'une princesse. 👑
+      </p>
+
+      <p>
+        Cherche l'endroit par lequel elle aurait
+        pu entrer ou sortir du domaine.
+      </p>
+
+      <p>
+        Trouve les passages qui gardent encore
+        la trace du château.
+      </p>
+
+      <p>
+        <strong>
+          Une fois sur place, prends ton selfie.
+        </strong>
+      </p>
+
+    `
+
+  },
+
+
+  4: {
+
+    title: "L'eau emporte tout…",
+
+    text: `
+
+      <p>
+        Certaines choses valent mieux que
+        d'être laissées derrière soi…
+      </p>
+
+      <p>
+        L'eau les emporte, les fait disparaître
+        peu à peu, puis finit par retrouver son calme.
+      </p>
+
+      <p>
+        Cherche un endroit où l'eau a longtemps
+        été mise à contribution pour faire fonctionner
+        quelque chose d'important.
+      </p>
+
+      <p>
+        <strong>
+          Quand tu as trouvé,
+          prends ton selfie.
+        </strong>
+      </p>
+
+    `
+
+  },
+
+
+  5: {
+
+    title: "Là où Loki aime prendre du temps 🐾",
+
+    text: `
+
+      <p>
+        Voilà, tu arrives à la dernière partie
+        de l'aventure. 🎉
+      </p>
+
+      <p>
+        Maintenant, rends-toi
+        <strong>
+          là où Loki aime prendre du temps.
+        </strong>
+      </p>
+
+      <p>
+        Cherche son petit coin à lui.
+        Prends le temps de regarder autour de toi
+        et de trouver l'endroit.
+      </p>
+
+      <p>
+        Quand tu penses avoir trouvé,
+        <strong>
+          fais ton selfie sur place.
+        </strong> ❤️
+      </p>
+
+      <p>
+        <strong>
+          Dès que la photo est prise,
+          le dernier point sera débloqué.
+        </strong>
+      </p>
+
+    `
+
+  },
+
+
+  6: {
+
+    title: "Dernière étape ❤️",
+
+    text: `
+
+      <div class="final">
+
+        <p>
+          🎉 <strong>Bravo !</strong> 🎉
+        </p>
+
+        <p>
+          Tu as réussi toutes les étapes !
+        </p>
+
+        <p>
+          Il ne reste plus qu'une dernière chose
+          à faire…
+        </p>
+
+        <p>
+          <strong>
+            🏠 Retourne à la maison.
+          </strong>
+        </p>
+
+        <p>
+          ❤️
+        </p>
+
+      </div>
+
+    `
+
+  }
 
 };
 
 
-/* =========================================================
+/* =====================================================
    VARIABLES
-   ========================================================= */
+   ===================================================== */
 
-let currentStep = parseInt(localStorage.getItem("jeuStep")) || 1;
+let currentStep =
+  parseInt(localStorage.getItem("jeuStep")) || 1;
 
 let geoValidated = false;
+
 let photoTaken = false;
+
 let stream = null;
 
 
-/* =========================================================
+/* =====================================================
    INITIALISATION
-   ========================================================= */
+   ===================================================== */
 
 function init() {
 
@@ -390,9 +467,9 @@ function init() {
 }
 
 
-/* =========================================================
-   AFFICHER UNE ÉTAPE
-   ========================================================= */
+/* =====================================================
+   AFFICHER L'ÉTAPE
+   ===================================================== */
 
 function showStep() {
 
@@ -407,90 +484,116 @@ function showStep() {
   document.getElementById("text").innerHTML =
     step.text;
 
-  document.getElementById("status").classList.add("hidden");
+  document.getElementById("status")
+    .classList.add("hidden");
 
-  document.getElementById("cameraWrap").classList.add("hidden");
+  document.getElementById("cameraWrap")
+    .classList.add("hidden");
 
-  document.getElementById("locBtn").classList.add("hidden");
+  document.getElementById("locBtn")
+    .classList.add("hidden");
 
-  document.getElementById("startBtn").classList.remove("hidden");
+  document.getElementById("startBtn")
+    .classList.remove("hidden");
+
+
+  /*
+    Étape 6 :
+    pas de bouton.
+  */
 
   if (currentStep === 6) {
 
-    document.getElementById("startBtn").classList.add("hidden");
+    document.getElementById("startBtn")
+      .classList.add("hidden");
 
-    return;
   }
 
 }
 
 
-/* =========================================================
-   COMMENCER
-   ========================================================= */
+/* =====================================================
+   COMMENCER L'AVENTURE
+   ===================================================== */
 
 function startAdventure() {
 
-  document.getElementById("startBtn").classList.add("hidden");
+  document.getElementById("startBtn")
+    .classList.add("hidden");
 
-  const point = POINTS[currentStep];
+
+  /*
+    POINT 5 :
+    aucune localisation GPS.
+    On ouvre directement la caméra.
+  */
 
   if (currentStep === 5) {
-
-    /*
-      POINT 5 :
-      aucune localisation.
-      On demande simplement d'aller sur place
-      puis de prendre le selfie.
-    */
 
     openCamera();
 
     return;
+
   }
 
-  document.getElementById("locBtn").classList.remove("hidden");
+
+  /*
+    Points 1 à 4 :
+    localisation GPS.
+  */
+
+  document.getElementById("locBtn")
+    .classList.remove("hidden");
 
   showStatus(
-    "📍 Appuie sur le bouton lorsque tu es arrivé.",
+    "📍 Lorsque tu penses être arrivé au bon endroit, vérifie ta position.",
     ""
   );
 
 }
 
 
-/* =========================================================
-   MESSAGE
-   ========================================================= */
+/* =====================================================
+   AFFICHER UN MESSAGE
+   ===================================================== */
 
 function showStatus(message, type) {
 
-  const box = document.getElementById("status");
+  const box =
+    document.getElementById("status");
 
   box.innerHTML = message;
 
   box.className = "status";
 
+
   if (type === "ok") {
+
     box.classList.add("success");
+
   }
 
+
   if (type === "error") {
+
     box.classList.add("error");
+
   }
+
 
   box.classList.remove("hidden");
 
 }
 
 
-/* =========================================================
-   GPS
-   ========================================================= */
+/* =====================================================
+   VÉRIFICATION GPS
+   ===================================================== */
 
 function checkLocation() {
 
   const point = POINTS[currentStep];
+
 
   if (!navigator.geolocation) {
 
@@ -500,81 +603,121 @@ function checkLocation() {
     );
 
     return;
+
   }
+
 
   showStatus(
     "📍 Recherche de ta position…",
     ""
   );
 
+
   navigator.geolocation.getCurrentPosition(
 
     function(position) {
 
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
+      const lat =
+        position.coords.latitude;
 
-      const distance = getDistance(
-        lat,
-        lng,
-        point.lat,
-        point.lng
-      );
+      const lng =
+        position.coords.longitude;
+
+
+      const distance =
+        getDistance(
+          lat,
+          lng,
+          point.lat,
+          point.lng
+        );
+
 
       if (distance <= point.radius) {
 
         geoValidated = true;
 
-        document.getElementById("locBtn").classList.add("hidden");
+
+        document.getElementById("locBtn")
+          .classList.add("hidden");
+
 
         showStatus(
-          "✅ Bravo ! Tu es au bon endroit.",
+          "✅ Bravo ! Tu as trouvé !",
           "ok"
         );
 
+
         if (point.selfie) {
 
-          setTimeout(function() {
-            openCamera();
-          }, 500);
+          setTimeout(
+            function() {
 
-        } else {
+              openCamera();
 
-          setTimeout(function() {
-            nextStep();
-          }, 800);
+            },
+            700
+          );
 
         }
 
-      } else {
+        else {
+
+          setTimeout(
+            function() {
+
+              nextStep();
+
+            },
+            1000
+          );
+
+        }
+
+      }
+
+      else {
 
         showStatus(
+
           "❌ Tu n'es pas encore au bon endroit.<br><br>" +
-          "Tu es à environ " +
-          Math.round(distance) +
-          " mètres de la zone.",
+
+          "Continue à chercher…",
+
           "error"
+
         );
 
       }
 
     },
 
+
     function(error) {
 
       showStatus(
+
         "⚠️ Impossible d'obtenir ta position.<br><br>" +
+
         "Vérifie que la localisation est activée " +
+
         "et autorise ton navigateur à utiliser ta position.",
+
         "error"
+
       );
 
     },
 
+
     {
+
       enableHighAccuracy: true,
+
       timeout: 15000,
+
       maximumAge: 5000
+
     }
 
   );
@@ -582,15 +725,22 @@ function checkLocation() {
 }
 
 
-/* =========================================================
-   CALCUL DISTANCE GPS
-   ========================================================= */
+/* =====================================================
+   CALCUL DE DISTANCE
+   ===================================================== */
 
-function getDistance(lat1, lon1, lat2, lon2) {
+function getDistance(
+  lat1,
+  lon1,
+  lat2,
+  lon2
+) {
 
   const R = 6371000;
 
-  const rad = Math.PI / 180;
+  const rad =
+    Math.PI / 180;
+
 
   const dLat =
     (lat2 - lat1) * rad;
@@ -598,28 +748,37 @@ function getDistance(lat1, lon1, lat2, lon2) {
   const dLon =
     (lon2 - lon1) * rad;
 
+
   const a =
+
     Math.sin(dLat / 2) *
-    Math.sin(dLat / 2) +
+    Math.sin(dLat / 2)
+
+    +
+
     Math.cos(lat1 * rad) *
     Math.cos(lat2 * rad) *
+
     Math.sin(dLon / 2) *
     Math.sin(dLon / 2);
 
+
   const c =
-    2 * Math.atan2(
+    2 *
+    Math.atan2(
       Math.sqrt(a),
       Math.sqrt(1 - a)
     );
+
 
   return R * c;
 
 }
 
 
-/* =========================================================
-   CAMERA
-   ========================================================= */
+/* =====================================================
+   OUVRIR LA CAMÉRA
+   ===================================================== */
 
 async function openCamera() {
 
@@ -629,15 +788,20 @@ async function openCamera() {
   const video =
     document.getElementById("video");
 
+
   try {
 
     stream =
       await navigator.mediaDevices.getUserMedia({
+
         video: {
           facingMode: "user"
         },
+
         audio: false
+
       });
+
 
     video.srcObject = stream;
 
@@ -645,12 +809,17 @@ async function openCamera() {
 
   }
 
+
   catch (error) {
 
     showStatus(
+
       "⚠️ Impossible d'utiliser la caméra.<br><br>" +
+
       "Autorise l'accès à la caméra dans ton navigateur.",
+
       "error"
+
     );
 
   }
@@ -658,109 +827,164 @@ async function openCamera() {
 }
 
 
-/* =========================================================
+/* =====================================================
    PRENDRE LE SELFIE
-   ========================================================= */
+   ===================================================== */
 
 function takePhoto() {
 
   const video =
     document.getElementById("video");
 
-  const canvas =
-    document.getElementById("canvas");
 
   const preview =
     document.getElementById("preview");
 
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+
+  /*
+    Création du canvas uniquement
+    pour capturer l'image.
+  */
+
+  const canvas =
+    document.createElement("canvas");
+
+
+  canvas.width =
+    video.videoWidth;
+
+  canvas.height =
+    video.videoHeight;
+
 
   const ctx =
     canvas.getContext("2d");
 
+
   ctx.drawImage(
+
     video,
+
     0,
     0,
+
     canvas.width,
     canvas.height
+
   );
+
 
   preview.src =
     canvas.toDataURL("image/jpeg");
 
-  preview.style.display = "block";
 
-  video.style.display = "none";
+  preview.style.display =
+    "block";
+
+
+  video.style.display =
+    "none";
+
 
   document.getElementById("photoBtn")
     .classList.add("hidden");
 
+
   photoTaken = true;
+
+
+  /*
+    Arrêt de la caméra.
+  */
 
   if (stream) {
 
-    stream.getTracks().forEach(
-      track => track.stop()
-    );
+    stream
+      .getTracks()
+      .forEach(
+        track => track.stop()
+      );
 
   }
 
 
   /*
     IMPORTANT :
-    Le selfie valide immédiatement l'étape.
+    La photo n'est PAS envoyée sur un serveur.
 
-    Pour le point 5, il n'y a aucun contrôle GPS.
+    Elle sert uniquement à constater que
+    le selfie a été pris.
   */
 
+
   showStatus(
+
     "📸 Selfie enregistré !<br><br>" +
-    "Bravo, la dernière étape est maintenant débloquée.",
+
+    "Bravo, la prochaine étape est débloquée.",
+
     "ok"
+
   );
 
-  setTimeout(function() {
 
-    document.getElementById("cameraWrap")
-      .classList.add("hidden");
+  /*
+    Passage automatique à l'étape suivante.
+  */
 
-    nextStep();
+  setTimeout(
 
-  }, 1200);
+    function() {
+
+      document.getElementById("cameraWrap")
+        .classList.add("hidden");
+
+      nextStep();
+
+    },
+
+    1200
+
+  );
 
 }
 
 
-/* =========================================================
-   ÉTAPE SUIVANTE
-   ========================================================= */
+/* =====================================================
+   PASSER À L'ÉTAPE SUIVANTE
+   ===================================================== */
 
 function nextStep() {
 
   currentStep++;
 
+
   if (currentStep > 6) {
+
     currentStep = 6;
+
   }
+
 
   localStorage.setItem(
     "jeuStep",
     currentStep
   );
 
+
   geoValidated = false;
+
   photoTaken = false;
+
 
   showStep();
 
 }
 
 
-/* =========================================================
+/* =====================================================
    LANCEMENT
-   ========================================================= */
+   ===================================================== */
 
 init();
 
